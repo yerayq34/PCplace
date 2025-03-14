@@ -34,6 +34,7 @@ if (!$nombre || !$apellido || !$email) {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
