@@ -1,38 +1,45 @@
 <?php
-session_start(); // Iniciar la sesión
-include 'db.php'; // Incluir la conexión a la base de datos
+session_start(); // Se inicia la sesión
 
-// Verificar si el usuario ha iniciado sesión
+// Mostrar errores
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Comprobar si el usuario ha iniciado sesión.
+// Si no es así, se redirige a la página de inicio de sesión.
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php"); // Redirigir a la página de inicio de sesión si no está autenticado
+    header("Location: login.php"); // Redirige si no hay sesión activa.
     exit();
 }
 
-// Obtener el nombre de usuario de la sesión
+// Incluir el archivo de conexión con la base de datos.
+include 'db.php';
+
+// Obtener el nombre de usuario de la sesión.
 $username = $_SESSION['username'];
 
-// Consultar la información del usuario en la base de datos
-$query = "SELECT nombre, apellido, email FROM users WHERE username = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $username);
+// Consultar la base de datos para obtener información del usuario.
+$stmt = $conn->prepare("SELECT nombre, apellidos, email FROM users WHERE username = ?");
+$stmt->bind_param("s", $username); // Asignar el valor del usuario en la consulta.
 $stmt->execute();
-$result = $stmt->get_result();
+$stmt->bind_result($nombre, $apellido, $email); // Guardar los resultados en variables.
+$stmt->fetch(); // Obtener los datos.
+$stmt->close(); // Cerrar la consulta.
 
-// Verificar si se encontraron resultados
-if ($result->num_rows > 0) {
-    $userData = $result->fetch_assoc();
-} else {
-    // Si no se encuentra el usuario, redirigir a la página de inicio de sesión
-    header("Location: login.php");
+// Comprobar si se obtuvieron datos del usuario.
+if (!$nombre || !$apellido || !$email) {
+    echo "Error: No se encontró información del usuario.";
     exit();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> <!-- Enlace al CSS -->
     <title>Dashboard</title>
 </head>
 <body>
@@ -42,17 +49,16 @@ if ($result->num_rows > 0) {
             <a href="index.php">Inicio</a>
             <a href="mi-cuenta.php">Mi Cuenta</a>
             <a href="carrito.php">Carrito</a>
-            <a href="logout.php">Cerrar Sesión</a>
+            <a href="logout.php">Cerrar Sesión</a> <!-- Salir de la sesión -->
         </nav>
     </header>
     <main>
         <div class="container">
-            <h2>Hola, <?php echo htmlspecialchars($username); ?>!</h2>
-            <p>Nombre: <?php echo htmlspecialchars($userData['nombre']); ?></p>
-            <p>Apellido: <?php echo htmlspecialchars($userData['apellido']); ?></p>
-            <p>Email: <?php echo htmlspecialchars($userData['email']); ?></p>
-
-            <p>Este es tu panel de control. Aquí puedes gestionar tu cuenta y acceder a otras funcionalidades.</p>
+            <h2>Hola, <?php echo htmlspecialchars($nombre); ?>!</h2>
+            <p>Nombre: <?php echo htmlspecialchars($nombre); ?></p>
+            <p>Apellido: <?php echo htmlspecialchars($apellido); ?></p>
+            <p>Email: <?php echo htmlspecialchars($email); ?></p>
+            <p>Este es tu panel de control. Aquí puedes gestionar tu cuenta.</p>
         </div>
     </main>
     <footer>
