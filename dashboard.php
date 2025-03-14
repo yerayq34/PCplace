@@ -1,7 +1,7 @@
 <?php
 session_start(); // Se inicia la sesión
 
-// Mostrar errores
+// Mostrar errores si el php tiene algun tipo de error
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -13,7 +13,7 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-// Incluir el archivo de conexión con la base de datos.
+// Con este archivo de conexión con la base de datos.
 include 'db.php';
 
 // Obtener el nombre de usuario de la sesión.
@@ -40,17 +40,17 @@ if (!$nombre || !$apellido || !$email) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css"> <!-- Enlace al CSS -->
+    <link rel="stylesheet" href="styles.css">
     <title>Dashboard</title>
 </head>
 <body>
     <header>
-        <h1>Bienvenido a tu Dashboard</h1>
+        <h1>PCPLACE</h1>
         <nav>
             <a href="index.php">Inicio</a>
-            <a href="mi-cuenta.php">Mi Cuenta</a>
+            <a href="dashboard.php">Mi Cuenta</a>
             <a href="carrito.php">Carrito</a>
-            <a href="logout.php">Cerrar Sesión</a> <!-- Salir de la sesión -->
+            <a href="logout.php">Cerrar Sesión</a>
         </nav>
     </header>
     <main>
