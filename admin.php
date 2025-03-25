@@ -1,38 +1,63 @@
 <?php
 session_start();
-include 'db.php'; // Incluir la conexión a la base de datos
+require 'db.php';
 
-// Verificar si el usuario es admin
+// Verificar permisos de admin
 if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: login.php"); // Redirigir si no es admin
+    header("Location: login.php");
     exit();
 }
 
+// Obtener categorías 
+$categorias = $conn->query("SELECT idcategory, nombre_categoria FROM category");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Obtener los datos del formulario
-    $nombre_producto = $_POST['nombre_producto'];
-    $idcategoria = $_POST['idcategoria'];
-    $pvp = $_POST['pvp'];
-    $description = $_POST['description'];
-    $short_desc = $_POST['short_desc'];
+    try {
+        
+        $nombre_producto = htmlspecialchars(trim($_POST['nombre_producto']));
+        $idcategoria = (int)$_POST['idcategoria'];
+        $pvp = (float)str_replace(',', '.', $_POST['pvp']);
+        $description = htmlspecialchars(trim($_POST['description']));
+        $short_desc = htmlspecialchars(trim($_POST['short_desc']));
 
-    // Preparar la consulta para insertar el nuevo producto
-    $stmt = $conn->prepare("INSERT INTO products (nombre_producto, idcategory, pvp, description, short_desc) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sids", $nombre_producto, $idcategoria, $pvp, $description, $short_desc); // 's' para string, 'i' para integer, 'd' para double
+        // Validaciones
+        if (empty($nombre_producto) || strlen($nombre_producto) > 60) {
+            throw new Exception("Nombre inválido (máx. 60 caracteres)");
+        }
 
-    if ($stmt->execute()) {
-        $_SESSION['success'] = "Producto añadido exitosamente.";
-        header("Location: admin.php"); // Redirigir a la misma página para añadir más productos
+        if ($pvp <= 0 || $pvp > 9999.99) {
+            throw new Exception("Precio debe ser entre 0.01 y 9999.99");
+        }
+
+        // Verificar categoría existente
+        $check_cat = $conn->prepare("SELECT 1 FROM category WHERE idcategory = ?");
+        $check_cat->bind_param("i", $idcategoria);
+        $check_cat->execute();
+        
+        if (!$check_cat->get_result()->num_rows) {
+            throw new Exception("Categoría no válida");
+        }
+
+        // Insertar producto
+        $stmt = $conn->prepare("INSERT INTO products 
+                              (nombre_producto, idcategory, pvp, description, short_desc) 
+                              VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sidss", $nombre_producto, $idcategoria, $pvp, $description, $short_desc);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en base de datos: " . $stmt->error);
+        }
+
+        $_SESSION['success'] = "Producto añadido correctamente";
+        header("Location: admin.php");
         exit();
-    } else {
-        $_SESSION['error'] = "Error al añadir el producto: " . $stmt->error;
+
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: admin.php");
+        exit();
     }
-
-    $stmt->close();
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -40,59 +65,79 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Producto - Admin</title>
     <link rel="stylesheet" href="styles.css">
-    <title>Añadir Producto</title>
 </head>
 <body>
-    <header>
-        <h1>Añadir Producto</h1>
-        <nav>
-            <a href="index.php">Inicio</a>
-            <a href="admin_dashboard.php">Dashboard Admin</a>
-            <a href="productos.php">Productos</a>
-            <a href="logout.php">Cerrar Sesión</a>
-        </nav>
-    </header>
-    <main>
-        <div class="container">
-            <h2>Formulario para Añadir Producto</h2>
-            <?php
-            if (isset($_SESSION['error'])) {
-                echo "<p style='color:red;'>{$_SESSION['error']}</p>";
-                unset($_SESSION['error']);
-            }
-            if (isset($_SESSION['success'])) {
-                echo "<p style='color:green;'>{$_SESSION['success']}</p>";
-                unset($_SESSION['success']);
-            }
-            ?>
-            <form action="admin.php" method="POST">
-                <div class="input-group">
-                    <label for="nombre_producto">Nombre del Producto</label>
-                    <input type="text" id="nombre_producto" name="nombre_producto" required>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Añadir Producto</h1>
+            <nav class="admin-nav">
+                <a href="index.php" class="nav-link">Inicio</a>
+                <a href="admin_dashboard.php" class="nav-link">Dashboard Admin</a>
+                <a href="productos.php" class="nav-link">Productos</a>
+                <a href="logout.php" class="nav-link">Cerrar Sesión</a>
+            </nav>
+        </header>
+
+        <main class="admin-main">
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="alert error">
+                    <?= $_SESSION['error'] ?>
+                    <?php unset($_SESSION['error']) ?>
                 </div>
-                <div class="input-group">
-                    <label for="idcategoria">Categoría ID</label>
-                    <input type="number" id="idcategoria" name="idcategoria" required>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="alert success">
+                    <?= $_SESSION['success'] ?>
+                    <?php unset($_SESSION['success']) ?>
                 </div>
-                <div class="input-group">
-                    <label for="pvp">Precio (PVP)</label>
-                    <input type="text" id="pvp" name="pvp" required>
+            <?php endif; ?>
+
+            <form method="POST" class="product-form">
+                <div class="form-group">
+                    <label for="nombre_producto" class="form-label">Nombre</label>
+                    <input type="text" id="nombre_producto" name="nombre_producto" 
+                           class="form-input" required maxlength="60">
                 </div>
-                <div class="input-group">
-                    <label for="short_desc">Descripción Corta</label>
-                    <input type="text" id="short_desc" name="short_desc" required>
+
+                <div class="form-group">
+                    <label for="idcategoria" class="form-label">Categoría</label>
+                    <select id="idcategoria" name="idcategoria" class="form-select" required>
+                        <?php while ($cat = $categorias->fetch_assoc()): ?>
+                            <option value="<?= $cat['idcategory'] ?>">
+                                <?= htmlspecialchars($cat['nombre_categoria']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
                 </div>
-                <div class="input-group">
-                    <label for="description">Descripción</label>
-                    <textarea id="description" name="description" required></textarea>
+
+                <div class="form-group">
+                    <label for="pvp" class="form-label">Precio (€)</label>
+                    <input type="text" id="pvp" name="pvp" class="form-input" 
+                           required pattern="[0-9]+([\.,][0-9]{1,2})?">
                 </div>
-                <button type="submit">Añadir Producto</button>
+
+                <div class="form-group">
+                    <label for="short_desc" class="form-label">Descripción Corta</label>
+                    <input type="text" id="short_desc" name="short_desc" 
+                           class="form-input" required maxlength="255">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Descripción Completa</label>
+                    <textarea id="description" name="description" 
+                              class="form-textarea" required></textarea>
+                </div>
+
+                <button type="submit" class="form-submit">Guardar Producto</button>
             </form>
-        </div>
-    </main>
-    <footer>
-        <p>&copy; 2025 PCPlace. Hecho por Tarun y Yeray.</p>
-    </footer>
+        </main>
+
+        <footer class="admin-footer">
+            <p>&copy; 2025 PCPlace. Hecho por Tarun y Yeray.</p>
+        </footer>
+    </div>
 </body>
 </html>
