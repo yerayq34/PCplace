@@ -22,6 +22,7 @@ if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') {
         <nav>
             <a href="index.php">Inicio</a>
             <a href="admin_dashboard.php">Dashboard Admin</a>
+            <a href="productos.php">Productos</a> 
             <a href="logout.php">Cerrar Sesión</a>
         </nav>
     </header>
@@ -29,9 +30,6 @@ if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') {
         <div class="container">
             <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
             <p>Este es tu panel de control como administrador.</p>
-            <div class="button-container">
-                <a href="admin.php" class="button">Añadir Productos</a>
-            </div>
         </div>
     </main>
     <footer>
