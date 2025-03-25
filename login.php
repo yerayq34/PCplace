@@ -2,67 +2,49 @@
 session_start(); // Iniciar la sesión
 
 // Con este archivo se conecta con la base de datos
-
 include 'db.php';
 
 // Verificar si se ha enviado el formulario
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
     $user = $_POST['username'];
-
     $pass = $_POST['password'];
 
+    // Preparar la consulta para evitar inyecciones SQL
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-   // Preparar la consulta para evitar inyecciones SQL
+    // Verificar si se encontró el usuario en la base de datos
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
 
-   $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+        // Verificar la contraseña (suponiendo que la contraseña está almacenada como hash)
+        if (password_verify($pass, $row['contraseña'])) {
+            // Iniciar sesión
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['rol'] = $row['rol']; // Almacenar el rol en la sesión
 
-   $stmt->bind_param("s", $user);
+            // Redirigir según el rol
+            if ($row['rol'] === 'admin') {
+                header("Location: admin_dashboard.php"); // Redirigir a la página de administración
+            } else {
+                header("Location: dashboard.php"); // Redirigir a la página de dashboard para usuarios normales
+            }
+            exit();
+        } else {
+            echo "Usuario o contraseña incorrectos.";
+        }
+    } else {
+        echo "Usuario o contraseña incorrectos.";
+    }
 
-   $stmt->execute();
-
-   $result = $stmt->get_result();
-
-
-   // Verificar si se encontró el usuario en la base de ddtos
-
-   if ($result->num_rows > 0) {
-
-       $row = $result->fetch_assoc();
-
-       // Verificar la contraseña (suponiendo que la contraseña está almacenada como hash)
-
-       if (password_verify($pass, $row['contraseña'])) {
-
-           // Iniciar sesión
-
-           $_SESSION['username'] = $row['username'];
-
-           header("Location: dashboard.php"); // Redirigir a la página de dashboard para tener del usuario
-
-           exit();
-
-       } else {
-
-           echo "Usuario o contraseña incorrectos.";
-
-       }
-
-   } else {
-
-       echo "Usuario o contraseña incorrectos.";
-
-   }
-
-
-   $stmt->close();
-
+    $stmt->close();
 }
 
 $conn->close();
-
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -93,7 +75,7 @@ $conn->close();
                     <input type="password" id="password" name="password" required>
                 </div>
                 <button type="submit">Entrar</button>
-                <p class="signup-link">¿No tienes una cuenta? <a href="#">Regístrate</a></p>
+                <p class="signup-link">¿No tienes una cuenta? <a href="register.php">Regístrate</a></p>
             </form>
         </div>
     </main>
@@ -102,4 +84,3 @@ $conn->close();
     </footer>
 </body>
 </html>
-
