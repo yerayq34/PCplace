@@ -1,7 +1,7 @@
 <?php
 session_start(); // Se inicia la sesión
 
-// Mostrar errores si el php tiene algun tipo de error
+// Mostrar errores si el PHP tiene algún tipo de error
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -34,7 +34,6 @@ if (!$nombre || !$apellido || !$email) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -42,6 +41,26 @@ if (!$nombre || !$apellido || !$email) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>Dashboard</title>
+    <style>
+        .profile-icon {
+            width: 100px; /* Ajusta el tamaño según sea necesario */
+            height: 100px; /* Ajusta el tamaño según sea necesario */
+            border-radius: 50%; /* Hace que la imagen sea circular */
+            object-fit: cover; /* Asegura que la imagen se ajuste bien */
+        }
+        .modify-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007BFF; /* Color de fondo del botón */
+            color: white; /* Color del texto */
+            border: none; /* Sin borde */
+            border-radius: 5px; /* Bordes redondeados */
+            cursor: pointer; /* Cambia el cursor al pasar el ratón */
+        }
+        .modify-button:hover {
+            background-color: #0056b3; /* Color de fondo al pasar el ratón */
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -56,10 +75,12 @@ if (!$nombre || !$apellido || !$email) {
     <main>
         <div class="container">
             <h2>Hola, <?php echo htmlspecialchars($nombre); ?>!</h2>
+            <img src="path/to/your/profile-icon.png" alt="Ícono de perfil" class="profile-icon"> <!-- Cambia la ruta a tu imagen -->
             <p>Nombre: <?php echo htmlspecialchars($nombre); ?></p>
             <p>Apellido: <?php echo htmlspecialchars($apellido); ?></p>
             <p>Email: <?php echo htmlspecialchars($email); ?></p>
             <p>Este es tu panel de control. Aquí puedes gestionar tu cuenta.</p>
+            <a href="modify.php" class="modify-button">Modificar Datos</a> <!-- Enlace al formulario de modificación -->
         </div>
     </main>
     <footer>

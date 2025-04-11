@@ -19,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $pvp = (float)str_replace(',', '.', $_POST['pvp']);
         $description = htmlspecialchars(trim($_POST['description']));
         $short_desc = htmlspecialchars(trim($_POST['short_desc']));
+        $nombre_imagen = htmlspecialchars(trim($_POST['nombre_imagen'])); // Obtener el nombre de la imagen
 
         // Validaciones
         if (empty($nombre_producto) || strlen($nombre_producto) > 60) {
@@ -27,6 +28,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($pvp <= 0 || $pvp > 9999.99) {
             throw new Exception("Precio debe ser entre 0.01 y 9999.99");
+        }
+
+        if (empty($nombre_imagen)) {
+            throw new Exception("El nombre de la imagen no puede estar vacío.");
         }
 
         // Verificar categoría existente
@@ -40,9 +45,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Insertar producto
         $stmt = $conn->prepare("INSERT INTO products 
-                              (nombre_producto, idcategory, pvp, description, short_desc) 
-                              VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sidss", $nombre_producto, $idcategoria, $pvp, $description, $short_desc);
+                              (nombre_producto, idcategory, pvp, description, short_desc, imagen) 
+                              VALUES (?, ?, ?, ?, ?, ?)");
+        $ruta_imagen = "productos/" . $nombre_imagen; // Construir la ruta completa
+        $stmt->bind_param("sidsss", $nombre_producto, $idcategoria, $pvp, $description, $short_desc, $ruta_imagen);
 
         if (!$stmt->execute()) {
             throw new Exception("Error en base de datos: " . $stmt->error);
@@ -99,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="form-group">
                     <label for="nombre_producto" class="form-label">Nombre</label>
                     <input type="text" id="nombre_producto" name="nombre_producto" 
-                           class="form-input" required maxlength="60">
+                           class="form -input" required maxlength="60">
                 </div>
 
                 <div class="form-group">
@@ -129,6 +135,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label for="description" class="form-label">Descripción Completa</label>
                     <textarea id="description" name="description" 
                               class="form-textarea" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre_imagen" class="form-label">Nombre de la Imagen</label>
+                    <input type="text" id="nombre_imagen" name="nombre_imagen" 
+                           class="form-input" required placeholder="imagen.jpg">
                 </div>
 
                 <button type="submit" class="form-submit">Guardar Producto</button>

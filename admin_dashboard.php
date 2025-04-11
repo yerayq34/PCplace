@@ -2,7 +2,7 @@
 session_start(); // Iniciar la sesión
 
 // Verificar si el usuario es admin
-if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') {
+if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') { // Cambiado a 'rol'
     header("Location: login.php"); // Redirigir si no es admin
     exit();
 }

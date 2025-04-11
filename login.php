@@ -1,7 +1,7 @@
 <?php
-session_start(); // Iniciar la sesión
+session_start();
 
-// Con este archivo se conecta con la base de datos
+
 include 'db.php';
 
 // Verificar si se ha enviado el formulario
