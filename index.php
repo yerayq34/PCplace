@@ -29,7 +29,11 @@ $result = $conn->query($sql);
             </button>
             <div class="dropdown-content">
                 <?php if (isset($_SESSION['username'])): ?>
-                    <a href="dashboard.php">Mi Cuenta</a>
+                    <?php if ($_SESSION['rol'] === 'admin'): ?>
+                        <a href="admin_dashboard.php">Mi Cuenta</a> <!-- Redirigir a admin_dashboard.php si es admin -->
+                    <?php else: ?>
+                        <a href="dashboard.php">Mi Cuenta</a> <!-- Redirigir a dashboard.php si es user -->
+                    <?php endif; ?>
                     <a href="logout.php">Cerrar Sesión</a>
                 <?php else: ?>
                     <a href="login.php">Iniciar Sesión</a>
