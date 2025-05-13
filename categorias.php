@@ -1,16 +1,14 @@
 <?php
-session_start(); // Iniciar la sesión
-
-// Verificar si el usuario es admin
+session_start();
 if (!isset($_SESSION['username']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: login.php"); // Redirigir si no es admin
+    header("Location: login.php");
     exit();
 }
 
 include 'db.php';
 
-// Obtener todos los usuarios
-$stmt = $conn->prepare("SELECT iduser, username, email, rol FROM users");
+// Obtener todas las categorías
+$stmt = $conn->prepare("SELECT idcategory, nombre_categoria FROM category");
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
@@ -21,7 +19,7 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <title>Dashboard Admin</title>
+    <title>Gestión de Categorías</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,14 +63,11 @@ $result = $stmt->get_result();
         .button:hover {
             background-color: #0056b3;
         }
-        nav a {
-            margin-right: 15px;
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>Panel de Administración</h1>
+        <h1>Gestión de Categorías</h1>
         <nav>
             <a href="index.php">Inicio</a>
             <a href="admin_dashboard.php">Dashboard Admin</a>
@@ -83,30 +78,24 @@ $result = $stmt->get_result();
     </header>
     <main>
         <div class="container">
-            <h2>Bienvenido, <?= htmlspecialchars($_SESSION['username']) ?>!</h2>
-            <p>Este es tu panel de control como administrador.</p>
-
-            <h2>Gestión de Usuarios</h2>
+            <h2>Lista de Categorías</h2>
+            <a href="crear_categoria.php" class="button">Crear Categoría</a>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Usuario</th>
-                        <th>Email</th>
-                        <th>Rol</th>
+                        <th>Nombre de la Categoría</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($user = $result->fetch_assoc()): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
-                            <td><?= $user['iduser'] ?></td>
-                            <td><?= htmlspecialchars($user['username']) ?></td>
-                            <td><?= htmlspecialchars($user['email']) ?></td>
-                            <td><?= $user['rol'] ?></td>
+                            <td><?= $row['idcategory'] ?></td>
+                            <td><?= htmlspecialchars($row['nombre_categoria']) ?></td>
                             <td>
-                                <a class="button" href="modificar_usuario.php?id=<?= $user['iduser'] ?>">Modificar</a>
-                                <a class="button" href="eliminar_usuario.php?id=<?= $user['iduser'] ?>" onclick="return confirm('¿Eliminar usuario?')">Eliminar</a>
+                                <a href="modificar_categoria.php?id=<?= $row['idcategory'] ?>" class="button">Modificar</a>
+                                <a href="eliminar_categoria.php?id=<?= $row['idcategory'] ?>" class="button" onclick="return confirm('¿Estás seguro de eliminar esta categoría?')">Eliminar</a>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -119,3 +108,8 @@ $result = $stmt->get_result();
     </footer>
 </body>
 </html>
+
+<?php
+$stmt->close();
+$conn->close();
+?>
