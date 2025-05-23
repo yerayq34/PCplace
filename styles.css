@@ -150,7 +150,7 @@ footer {
 
 .dropdown-content a:hover {
     background-color: #f1f1f1; /* Color de fondo al pasar el ratón */
-} ```css
+}
 /* Estilos para el formulario de inicio de sesión */
 .container {
     background-color: #ffffff;
@@ -203,3 +203,6 @@ footer {
 .signup-link a:hover {
     text-decoration: underline;
 }
+
+
+
